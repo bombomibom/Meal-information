@@ -13,13 +13,10 @@
     </style>
 </head>
 <body>
-  <div id="listArea">
-    
-  </div>
+  <div id="listArea"></div>
   <br>
   <button id="drawGraph">그래프 그리기</button>
   <button id="drawExcel">엑셀 다운로드</button>
-
   <div id="chart_div"></div>
 </body>
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
@@ -27,7 +24,7 @@
 
 <script type="text/javascript">
 
-  // html 데이터 추출 후 화면 출력
+  // 1. html 데이터 추출 후 화면 출력
   $.ajax({
     url :`/getList`,
     type : "get",
@@ -35,7 +32,6 @@
       //console.log(res);
       //console.log($("#listArea").html());
       for(var i = 0; i < res.length-2; i++){
-        //console.log("*");
         //console.log(res[i]);
         //console.log(res[i].day);
         //console.log(res[i].menu);
@@ -43,7 +39,7 @@
         //console.log(res[i].menu.length);
         for(var i2 = 0; i2 < res[i].menu.length; i2++){
           let dayNm = `#day${i}Menu`;
-          console.log(dayNm);
+          //console.log(dayNm);
           $(dayNm).append(
             "<li><span>" + 
               res[i].menu[i2] + "</span>" +
@@ -63,15 +59,10 @@
     }
   });
 
-  
-
-  
+  // 2. 그래프 그리기
   $("#drawGraph").click(function(){
-
-   
-
+    
     // 평균 및 요일 리스트
-    console.log("ddd");
     var listAreaDiv = $("#listArea").find("div");
     var day = $("#listArea").find("div").find("h4");
     var total = 0;
@@ -80,32 +71,23 @@
     var finalArr = [];
     //console.log(li);
     //console.log(day.eq(0).text());
-
     //console.log("listAreaDiv.length : " + listAreaDiv.length);
 
     for(let j = 0; j < listAreaDiv.length; j++){  
-      
-      
-
       var divLi = listAreaDiv.eq(j).find("li");
       //console.log(divLi);
-
       //console.log("divLi.length : " + divLi.length);  
       for(let i = 0; i < divLi.length; i++){
-        
         //console.log(li.eq(i).find("select option:selected").val());
         //console.log(typeof(li.eq(i).find("select option:selected").val()));
-
         var numVal = Number(divLi.eq(i).find("select option:selected").val());
         //console.log(typeof(numVal));
         //console.log(numVal);
-
         total += numVal;
       }
       avg = total/divLi.length;
       arr.push(day.eq(j).text());
       arr.push(Math.ceil(avg));
-      //console.log("arr");
       //console.log(arr);
       finalArr.push(arr);
       arr = [];
@@ -113,15 +95,13 @@
       total = 0;
       //console.log(finalArr);
     }
-    console.log(finalArr);
-    console.log(finalArr[0][0]);
-
+    //console.log(finalArr);
+    //console.log(finalArr[0][0]);
     //console.log(total);
-    //avg = total/divLi.length;
     //console.log(avg);
     
 
-    //그래프 라이브러리
+    // 그래프 라이브러리
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(drawBackgroundColor);
     
@@ -129,17 +109,11 @@
       var data = new google.visualization.DataTable();
       data.addColumn('string', '요일');
       data.addColumn('number', '평균');
-
-      data.addRows([
-        [finalArr[0][0],finalArr[0][1]],[finalArr[1][0],finalArr[1][1]],[finalArr[2][0],finalArr[2][1]],[finalArr[3][0],finalArr[3][1]],[finalArr[4][0],finalArr[4][1]]
-      ]);
+      data.addRows(finalArr);
 
       var options = {
         hAxis: {
           title: '요일'
-        },
-        vAxis: {
-          title: 'Popularity'
         }
       };
 
@@ -149,103 +123,52 @@
 
   });
 
-
+  // 3. 엑셀 다운로드
   $("#drawExcel").click(function(){
 
-    console.log("ddd");
-
-    // 1. 월 '' 화 '' 수 ~ list
-
-    //console.log($(".day").length);
-    var dayList = [];
+    // 3.1. 리스트 생성
+    var weekList = [];
+    var tmpList = [];
     for(let i = 0; i < $(".day").length; i++){
-      //console.log($(".day").eq(i).text());
-      dayList[i] = $(".day").eq(i).text();
-      //console.log(dayList);
+
+      // 3.1.1. 요일 담기
+      tmpList.push($(".day").eq(i).text());
+
+      // 3.1.2. 메뉴 담기
+      var ulFindLiLen = $("ul").eq(i).find("li").length;
+      for(let j = 0; j < ulFindLiLen; j++){
+        // /console.log($("ul").eq(i).find("span").eq(j).text());
+        tmpList.push($("ul").eq(i).find("span").eq(j).text());
+      }
+      tmpList.push('');
+      tmpList.push('평균');
+      weekList.push(tmpList);
+      tmpList = [];
+
     }
-    //console.log(dayList);
-
-
-
-    // 2. 각 요일 첫 번째 메뉴와 score list
-
-    //console.log($(".dayWrap"));
+    console.log(weekList);
 
     // 2.1. li 중 가장 큰 수 찾기
-    var maxLiLen = 0;
-    for(let i = 0; i < $(".dayWrap").length; i++){
-      //console.log($(".dayWrap").eq(i).find("li"));
-      var liLen = $(".dayWrap").eq(i).find("li").length;
-      //console.log(liLen);
-      if(maxLiLen < liLen){
-        maxLiLen = liLen;
+    // var maxLiLen = 0;
+    // for(let i = 0; i < $(".dayWrap").length; i++){
+    //   //console.log($(".dayWrap").eq(i).find("li"));
+    //   var liLen = $(".dayWrap").eq(i).find("li").length;
+    //   //console.log(liLen);
+    //   if(maxLiLen < liLen){
+    //     maxLiLen = liLen;
+    //   }
+    // }
+
+
+    // 3.2. 서버 전송
+    $.ajax({
+      url :`/drawExcel`,
+      type : "POST",
+      data : {excelData : weekList},
+      success : function(){
+
       }
-    }
-    //console.log(maxLiLen);
-
-    var day = [];
-    // 일단 각 요일별로 담아오기[ [ ] ]
-    for(let i = 0; i < $(".dayWrap").length; i++){ 
-      //console.log($(".dayWrap").eq(i));
-      //console.log($(".dayWrap").eq(i).find("h4").text());
-      day[i] = ($(".dayWrap").eq(i).find("h4").text()); 
-    }
-    console.log(day);
-
-    var dayFinal = [];
-
-    for(let i = 0; day.length; i++){
-      //dayFinal.push(day[i]);
-      dayFinal.push('');
-    }
-    console.log(dayFinal);
-
-
-
-
-
-
-    var dayMenuListFinal = [];
-    // 2.2. maxLiLen 수에 맞춰서 다른 애들 '' 공백으로 넣기
-    for(let i = 0; i < $(".dayWrap").length; i++){ 
-
-      var middleList = [];
-      
-      
-          
-      
-      
-      
-      for(let j = 0; j < $(".dayWrap").eq(i).find("li").length; j++){
-        //console.log($(".dayWrap").eq(i).find("li").eq(j).find("span").text()); // 각 메뉴 이름
-        //console.log($(".dayWrap").eq(i).find("li").eq(j).find("select option:selected").val()); // 각 메뉴 스코어
-
-        //dayMenuList.push($(".dayWrap").eq(i).find("li").eq(j).find("span").text());
-        //dayScoreList.push($(".dayWrap").eq(i).find("li").eq(j).find("select option:selected").val());
-      }
-
-      //console.log(dayMenuList);
-      //console.log(dayScoreList);
-      
-      //dayMenuListFinal.push(dayMenuList);
-
-    }
-
-    
-
-    //console.log(dayMenuListFinal);
-
-    // 3. '평균' text와 평균 값 list
-
-
-
-
-
-
-    // $.ajax({
-    //   url :`/drawExcel`,
-    //   type : "get"
-    // });
+    });
 
   });
 
